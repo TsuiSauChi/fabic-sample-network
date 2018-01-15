@@ -1,0 +1,95 @@
+# ---------------------------------------------------------------------------
+# "OrdererOrgs" - Definition of organizations managing orderer nodes
+# ---------------------------------------------------------------------------
+# never run only 1 ordering service in producation as it is a single point of failure (use mutiple orderer based on kafka apache)
+# infomation not commited to the blockchain, will be store on the orderer 
+# is able to run the same chaincode for solo or kafka orderer 
+# 1 ordering service is able to run more than 1 organisation
+# peer from different organisation are unable to talk to each other - gensis file be specific which peer is able to talk to which ordering service
+# For more information: https://github.com/hyperledger/fabric/blob/6f9b4272f4e3a6d843866402fa4325f39124e044/orderer/README.md
+OrdererOrgs:
+  # ---------------------------------------------------------------------------
+  # Orderer
+  # ---------------------------------------------------------------------------
+  # Name of organisation
+  - Name: Orderer
+  # where peer and orderer will run 
+  # certificate are attached to a specific domain - so to prevent data linkage (other party are unable to access data from other domain)
+  # put a dns server to solve the domain into a specific IP address
+  # A DNS server is a computer server that contains a database of public IP addresses and their associated hostnames
+  # run a antivirus program to prevent malware attacks - example of full antivirus https://www.lifewire.com/best-free-antivirus-software-4151895
+    Domain: example.com
+    # ---------------------------------------------------------------------------
+    # "Specs" - See PeerOrgs below for complete description
+    # ---------------------------------------------------------------------------
+    # useful for continuous integration, testing, etc..
+    Specs:
+      #name of certificate will name orderer.example.com
+      - Hostname: orderer
+# ---------------------------------------------------------------------------
+# "PeerOrgs" - Definition of organizations managing peer nodes
+# ---------------------------------------------------------------------------
+PeerOrgs:
+  # ---------------------------------------------------------------------------
+  # Org1
+  # ---------------------------------------------------------------------------
+  - Name: Org1
+    Domain: org1.example.com
+    # ---------------------------------------------------------------------------
+    # "Specs"
+    # ---------------------------------------------------------------------------
+    # Uncomment this section to enable the explicit definition of hosts in your
+    # configuration.  Most users will want to use Template, below
+    #
+    # Specs is an array of Spec entries.  Each Spec entry consists of two fields:
+    #   - Hostname:   (Required) The desired hostname, sans the domain.
+    #   - CommonName: (Optional) Specifies the template or explicit override for
+    #                 the CN.  By default, this is the template:
+    #
+    #                              "{{.Hostname}}.{{.Domain}}"
+    #
+    #                 which obtains its values from the Spec.Hostname and
+    #                 Org.Domain, respectively.
+    # ---------------------------------------------------------------------------
+    # Specs:
+    #   - Hostname: foo # implicitly "foo.org1.example.com"
+    #     CommonName: foo27.org5.example.com # overrides Hostname-based FQDN set above
+    #   - Hostname: bar
+    #   - Hostname: baz
+    # ---------------------------------------------------------------------------
+    # "Template"
+    # ---------------------------------------------------------------------------
+    # Allows for the definition of 1 or more hosts that are created sequentially
+    # from a template. By default, this looks like "peer%d" from 0 to Count-1.
+    # You may override the number of nodes (Count), the starting index (Start)
+    # or the template used to construct the name (Hostname).
+    #
+    # Note: Template and Specs are not mutually exclusive.  You may define both
+    # sections and the aggregate nodes will be created for you.  Take care with
+    # name collisions
+    # ---------------------------------------------------------------------------
+    Template:
+      # generate certificate for to number of count 
+      Count: 2
+      # Start: 5
+      # Hostname: {{.Prefix}}{{.Index}} # default
+      # Peer0.org1.example.com
+      # Peer1.org1.example.com
+    # ---------------------------------------------------------------------------
+    # "Users"
+    # ---------------------------------------------------------------------------
+    # Count: The number of user accounts _in addition_ to Admin
+    # ---------------------------------------------------------------------------
+    # speicifc certificate for the admin will be created 
+    # able to add user's certificate using Fabirc CA (different container) to issue certificate dymanic 
+    Users:
+      Count: 1
+  # ---------------------------------------------------------------------------
+  # Org2: See "Org1" for full specification
+  # ---------------------------------------------------------------------------
+  - Name: Org2
+    Domain: org2.example.com
+    Template:
+      Count: 2
+    Users:
+      Count: 1
